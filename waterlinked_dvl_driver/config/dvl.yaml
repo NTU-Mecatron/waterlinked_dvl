@@ -1,10 +1,10 @@
-waterlinked_dvl_driver_node:
+/**/waterlinked_dvl_driver:
   ros__parameters:
     # Descriptions for all DVL configurations can be found on the Water Linked
     # Documentation: https://docs.waterlinked.com/dvl/dvl-protocol/
 
     # Default IP address for the DVL-A50 and DVL-125
-    ip_address: "192.168.194.95"
+    ip_address: "192.168.2.95"
 
     # Default port for the DVL-A50 and DVL-125
     port: 16171
@@ -12,15 +12,15 @@ waterlinked_dvl_driver_node:
     # Specify a timeout for the DVL connection
     timeout: 5 # seconds
 
-    # All measurements are obtained from the DVL use the following coordinate
+    # All measurements are obtained from the DVL use the FLU coordinate
     # convention:
     # - x: Forward
-    # - y: Right
-    # - z: Down
+    # - y: Left
+    # - z: Up
     # This can be rotated using the mounting_rotation_offset parameter.
     frame_id: "dvl_link"
 
-    speed_of_sound: 1481 # m/s
+    speed_of_sound: 1500 # m/s
 
     # Rotate the DVL measurements about the z-axis. This is useful if the DVL
     # is mounted at an angle.

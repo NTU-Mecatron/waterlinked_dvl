@@ -23,6 +23,7 @@
 #include <memory>
 
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include "libwaterlinked/client.hpp"
 #include "marine_acoustic_msgs/msg/dvl.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -38,6 +39,7 @@ namespace waterlinked::ros
 {
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+using TwistWithCovarianceStamped = geometry_msgs::msg::TwistWithCovarianceStamped;
 
 class WaterLinkedDvlDriver : public rclcpp_lifecycle::LifecycleNode
 {
@@ -47,6 +49,8 @@ public:
   auto on_configure(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn override;
 
   auto on_activate(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn override;
+
+  auto on_deactivate(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn;
 
 private:
   std::unique_ptr<WaterLinkedClient> client_;
@@ -58,10 +62,12 @@ private:
   marine_acoustic_msgs::msg::Dvl dvl_msg_;
   geometry_msgs::msg::PoseWithCovarianceStamped dead_reckoning_msg_;
   nav_msgs::msg::Odometry odom_msg_;
+  TwistWithCovarianceStamped twist_msg_;
 
   std::shared_ptr<rclcpp::Publisher<marine_acoustic_msgs::msg::Dvl>> dvl_pub_;
   std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>> dead_reckoning_pub_;
   std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odom_pub_;
+  std::shared_ptr<rclcpp::Publisher<TwistWithCovarianceStamped>> twist_pub_;
 
   std::shared_ptr<rclcpp::Service<std_srvs::srv::SetBool>> enable_acoustic_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::SetBool>> enable_dark_mode_srv_;

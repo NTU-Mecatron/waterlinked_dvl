@@ -70,6 +70,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
   }
 
   try {
+    RCLCPP_INFO(this->get_logger(), "Connecting to DVL at %s:%ld", params_.ip_address.c_str(), params_.port);
     client_ =
       std::make_unique<WaterLinkedClient>(params_.ip_address, params_.port, std::chrono::seconds(params_.timeout));
   }
@@ -100,6 +101,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
   dvl_msg_.header.frame_id = params_.frame_id;
   dead_reckoning_msg_.header.frame_id = params_.frame_id;
   odom_msg_.header.frame_id = params_.frame_id;
+  twist_msg_.header.frame_id = params_.frame_id;
 
   dvl_msg_.velocity_mode = marine_acoustic_msgs::msg::Dvl::DVL_MODE_BOTTOM;
   dvl_msg_.dvl_type = marine_acoustic_msgs::msg::Dvl::DVL_TYPE_PISTON;  // 4-beam convex Janus array
@@ -131,6 +133,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
 
   dvl_pub_ = create_publisher<marine_acoustic_msgs::msg::Dvl>("~/velocity_report", rclcpp::SystemDefaultsQoS());
   odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("~/odom", rclcpp::SystemDefaultsQoS());
+  twist_pub_ = create_publisher<TwistWithCovarianceStamped>("~/twist_stamped", rclcpp::SystemDefaultsQoS());
   dead_reckoning_pub_ = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
     "~/dead_reckoning_report", rclcpp::SystemDefaultsQoS());
 
@@ -169,8 +172,8 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     odom_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
 
     odom_msg_.twist.twist.linear.x = report.vx;
-    odom_msg_.twist.twist.linear.y = report.vy;
-    odom_msg_.twist.twist.linear.z = report.vz;
+    odom_msg_.twist.twist.linear.y = -report.vy;
+    odom_msg_.twist.twist.linear.z = -report.vz;
 
     for (std::size_t i = 0; i < 3; ++i) {
       for (std::size_t j = 0; j < 3; ++j) {
@@ -179,6 +182,23 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     }
 
     odom_pub_->publish(odom_msg_);
+  });
+
+  client_->register_callback([this](const VelocityReport & report) {
+    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.time_of_validity);
+    twist_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+
+    twist_msg_.twist.twist.linear.x = report.vx;
+    twist_msg_.twist.twist.linear.y = -report.vy;
+    twist_msg_.twist.twist.linear.z = -report.vz;
+
+    for (std::size_t i = 0; i < 3; ++i) {
+      for (std::size_t j = 0; j < 3; ++j) {
+        twist_msg_.twist.covariance[i * 6 + j] = report.covariance(i, j);
+      }
+    }
+
+    twist_pub_->publish(twist_msg_);
   });
 
   client_->register_callback([this](const DeadReckoningReport & report) {
@@ -290,12 +310,32 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
 
 auto WaterLinkedDvlDriver::on_activate(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn
 {
-  std::future<CommandResponse> f = client_->reset_dead_reckoning();
+  std::future<CommandResponse> reset_dr_future = client_->reset_dead_reckoning();
+  const CommandResponse reset_dr_response = reset_dr_future.get();
+  if (!reset_dr_response.success) {
+    RCLCPP_ERROR(get_logger(), "Failed to reset dead reckoning: %s", reset_dr_response.error_message.c_str());
+    return CallbackReturn::ERROR;
+  }
+
+  std::future<CommandResponse> enable_acoustics_future = client_->enable_acoustics(true);
+  const CommandResponse enable_acoustics_response = enable_acoustics_future.get();
+  if (!enable_acoustics_response.success) {
+    RCLCPP_ERROR(get_logger(), "Failed to reset dead reckoning: %s", enable_acoustics_response.error_message.c_str());
+    return CallbackReturn::ERROR;
+  }
+
+  return CallbackReturn::SUCCESS;
+}
+
+auto WaterLinkedDvlDriver::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn
+{
+  std::future<CommandResponse> f = client_->enable_acoustics(false);
   const CommandResponse response = f.get();
   if (!response.success) {
     RCLCPP_ERROR(get_logger(), "Failed to reset dead reckoning: %s", response.error_message.c_str());
     return CallbackReturn::ERROR;
   }
+
   return CallbackReturn::SUCCESS;
 }
 
