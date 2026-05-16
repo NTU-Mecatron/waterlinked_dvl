@@ -190,6 +190,17 @@ WaterLinkedClient::~WaterLinkedClient()
   close(socket_);
 }
 
+auto WaterLinkedClient::close_socket() -> void
+{
+  running_.store(false);
+
+  if (polling_thread_.joinable()) {
+    polling_thread_.join();
+  }
+
+  close(socket_);
+}
+
 auto WaterLinkedClient::send_command(const nlohmann::json & command) -> std::future<CommandResponse>
 {
   const std::string command_str{command.dump()};

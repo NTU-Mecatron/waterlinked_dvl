@@ -52,6 +52,9 @@ public:
 
   ~WaterLinkedClient();
 
+  /// Close the connection 
+  auto close_socket() -> void;
+
   /// Set the speed of sound (1000-2000m/s).
   auto set_speed_of_sound(std::uint16_t speed_of_sound) -> std::future<CommandResponse>;
 
