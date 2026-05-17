@@ -52,6 +52,10 @@ public:
 
   auto on_deactivate(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn;
 
+  auto on_shutdown(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn;
+
+  auto on_cleanup(const rclcpp_lifecycle::State & previous_state) -> CallbackReturn;
+
 private:
   std::unique_ptr<WaterLinkedClient> client_;
 
@@ -69,13 +73,17 @@ private:
   std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odom_pub_;
   std::shared_ptr<rclcpp::Publisher<TwistWithCovarianceStamped>> twist_pub_;
 
-  std::shared_ptr<rclcpp::Service<std_srvs::srv::SetBool>> enable_acoustic_srv_;
-  std::shared_ptr<rclcpp::Service<std_srvs::srv::SetBool>> enable_dark_mode_srv_;
-  std::shared_ptr<rclcpp::Service<std_srvs::srv::SetBool>> enable_periodic_cycling_srv_;
-
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> calibrate_gyro_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> reset_dead_reckoning_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> trigger_ping_srv_;
+  std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> get_config_srv_;
+
+  bool load_parameters();
+  bool connect_client();
+  bool apply_initial_config();
+  void prepopulate_messages();
+  void setup_pub();
+  void register_callbacks();
 };
 
 }  // namespace waterlinked::ros
