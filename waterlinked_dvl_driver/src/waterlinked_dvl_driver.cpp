@@ -197,8 +197,12 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
         twist_msg_.twist.covariance[i * 6 + j] = report.covariance(i, j);
       }
     }
-
-    twist_pub_->publish(twist_msg_);
+    if (!report.velocity_valid) {
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                         "DVL velocity not valid, skipping twist message");
+    } else {
+      twist_pub_->publish(twist_msg_);
+    }
   });
 
   client_->register_callback([this](const DeadReckoningReport & report) {
