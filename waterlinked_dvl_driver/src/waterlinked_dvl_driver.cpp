@@ -191,7 +191,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
 
     for (std::size_t i = 0; i < 3; ++i) {
       for (std::size_t j = 0; j < 3; ++j) {
-        twist_msg_.twist.covariance[i * 6 + j] = report.covariance(i, j) * params_.twist_cov_scaling_factor_;
+        twist_msg_.twist.covariance[i * 6 + j] = report.covariance(i, j) * params_.twist_cov_scaling_factor;
       }
     }
 
@@ -208,9 +208,9 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     q.setRPY(report.roll * M_PI / 180., report.pitch * M_PI / 180., report.yaw * M_PI / 180.);
     dead_reckoning_msg_.pose.pose.orientation = tf2::toMsg(q);
 
-    dead_reckoning_msg_.pose.covariance[0] = report.std * params_.dead_reckoning_cov_scaling_factor_;
-    dead_reckoning_msg_.pose.covariance[7] = report.std * params_.dead_reckoning_cov_scaling_factor_;
-    dead_reckoning_msg_.pose.covariance[14] = report.std * params_.dead_reckoning_cov_scaling_factor_;
+    dead_reckoning_msg_.pose.covariance[0] = report.std * params_.dead_reckoning_cov_scaling_factor;
+    dead_reckoning_msg_.pose.covariance[7] = report.std * params_.dead_reckoning_cov_scaling_factor;
+    dead_reckoning_msg_.pose.covariance[14] = report.std * params_.dead_reckoning_cov_scaling_factor;
 
     // orientation covariance isn't provided by the DVL
     // set to -1 to indicate that it is unknown
@@ -232,9 +232,9 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     q.setRPY(report.roll * M_PI / 180., report.pitch * M_PI / 180., report.yaw * M_PI / 180.);
     odom_msg_.pose.pose.orientation = tf2::toMsg(q);
 
-    odom_msg_.pose.covariance[0] = report.std * params_.odom_cov_scaling_factor_;
-    odom_msg_.pose.covariance[7] = report.std * params_.odom_cov_scaling_factor_;
-    odom_msg_.pose.covariance[14] = report.std * params_.odom_cov_scaling_factor_;
+    odom_msg_.pose.covariance[0] = report.std * params_.odom_cov_scaling_factor;
+    odom_msg_.pose.covariance[7] = report.std * params_.odom_cov_scaling_factor;
+    odom_msg_.pose.covariance[14] = report.std * params_.odom_cov_scaling_factor;
 
     // same as above: orientation covariance isn't provided by the DVL so set to -1
     odom_msg_.pose.covariance[21] = -1;
