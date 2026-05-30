@@ -76,6 +76,11 @@ private:
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> calibrate_gyro_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> reset_dead_reckoning_srv_;
   std::shared_ptr<rclcpp::Service<std_srvs::srv::Trigger>> trigger_ping_srv_;
+
+  // Covariance scaling factors
+  double twist_cov_scaling_factor_ = 1.0;
+  double dead_reckoning_cov_scaling_factor_ = 1.0;
+  double odom_cov_scaling_factor_ = 1.0;
 };
 
 }  // namespace waterlinked::ros
