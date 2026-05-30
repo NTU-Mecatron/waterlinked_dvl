@@ -138,8 +138,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     "dead_reckoning_report", rclcpp::SystemDefaultsQoS());
 
   client_->register_callback([this](const VelocityReport & report) {
-    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.time_of_validity);
-    dvl_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+    dvl_msg_.header.stamp = this->now();
     dvl_msg_.altitude = report.altitude;
     dvl_msg_.velocity.x = report.vx;
     dvl_msg_.velocity.y = report.vy;
@@ -168,8 +167,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
 
   // much of the following code could be moved into the above callback, but we separate it to improve readability
   client_->register_callback([this](const VelocityReport & report) {
-    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.time_of_validity);
-    odom_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+    odom_msg_.header.stamp = this->now();
 
     odom_msg_.twist.twist.linear.x = report.vx;
     odom_msg_.twist.twist.linear.y = -report.vy;
@@ -185,8 +183,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
   });
 
   client_->register_callback([this](const VelocityReport & report) {
-    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.time_of_validity);
-    twist_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+    twist_msg_.header.stamp = this->now();
 
     twist_msg_.twist.twist.linear.x = report.vx;
     twist_msg_.twist.twist.linear.y = -report.vy;
@@ -202,8 +199,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
   });
 
   client_->register_callback([this](const DeadReckoningReport & report) {
-    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.ts);
-    dead_reckoning_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+    dead_reckoning_msg_.header.stamp = this->now();
     dead_reckoning_msg_.pose.pose.position.x = report.x;
     dead_reckoning_msg_.pose.pose.position.y = report.y;
     dead_reckoning_msg_.pose.pose.position.z = report.z;
@@ -226,8 +222,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
   });
 
   client_->register_callback([this](const DeadReckoningReport & report) {
-    const auto t = std::chrono::time_point_cast<std::chrono::nanoseconds>(report.ts);
-    odom_msg_.header.stamp = rclcpp::Time(t.time_since_epoch().count());
+    odom_msg_.header.stamp = this->now();
 
     odom_msg_.pose.pose.position.x = report.x;
     odom_msg_.pose.pose.position.y = report.y;
