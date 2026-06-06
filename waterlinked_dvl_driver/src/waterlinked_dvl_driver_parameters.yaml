@@ -62,3 +62,21 @@ waterlinked_dvl_driver:
     default_value: true
     description: "Whether or not periodic cycling is enabled."
     read_only: true
+
+  twist_cov_scaling_factor:
+    type: double
+    default_value: 1.0
+    description: "The scaling factor for the twist covariance."
+    read_only: true
+
+  dead_reckoning_cov_scaling_factor:
+    type: double
+    default_value: 1.0
+    description: "The scaling factor for the dead reckoning covariance."
+    read_only: true
+
+  odom_cov_scaling_factor:
+    type: double
+    default_value: 1.0
+    description: "The scaling factor for the odometry covariance."
+    read_only: true
