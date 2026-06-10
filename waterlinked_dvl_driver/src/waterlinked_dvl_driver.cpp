@@ -97,6 +97,16 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
     return CallbackReturn::ERROR;
   }
 
+  // Auto disable acoustics to save battery
+  std::future<CommandResponse> disable_acoustics_future = client_->enable_acoustics(false);
+  const CommandResponse disable_acoustics_response = disable_acoustics_future.get();
+  if (!disable_acoustics_response.success) {
+    RCLCPP_ERROR(get_logger(), "Failed to disable acoustics: %s", disable_acoustics_response.error_message.c_str());
+    return CallbackReturn::ERROR;
+  } else {
+    RCLCPP_INFO(get_logger(), "DVL acoustics disabled to save battery");
+  }
+
   // Pre-populate the sensor state messages with known, static values
   dvl_msg_.header.frame_id = params_.frame_id;
   dead_reckoning_msg_.header.frame_id = params_.frame_id;
@@ -298,7 +308,7 @@ auto WaterLinkedDvlDriver::on_configure(const rclcpp_lifecycle::State & /*previo
       populate_service_response(response, f);
     });
 
-  RCLCPP_INFO(get_logger(), "WaterLinkedDvlDriver loaded successfully");
+  RCLCPP_INFO(get_logger(), "WaterLinkedDvlDriver configured successfully");
 
   return CallbackReturn::SUCCESS;
 }
@@ -315,9 +325,11 @@ auto WaterLinkedDvlDriver::on_activate(const rclcpp_lifecycle::State & /*previou
   std::future<CommandResponse> enable_acoustics_future = client_->enable_acoustics(true);
   const CommandResponse enable_acoustics_response = enable_acoustics_future.get();
   if (!enable_acoustics_response.success) {
-    RCLCPP_ERROR(get_logger(), "Failed to reset dead reckoning: %s", enable_acoustics_response.error_message.c_str());
+    RCLCPP_ERROR(get_logger(), "Failed to enable acoustics: %s", enable_acoustics_response.error_message.c_str());
     return CallbackReturn::ERROR;
   }
+
+  RCLCPP_INFO(get_logger(), "WaterLinkedDvlDriver activated successfully");
 
   return CallbackReturn::SUCCESS;
 }
@@ -327,9 +339,11 @@ auto WaterLinkedDvlDriver::on_deactivate(const rclcpp_lifecycle::State & /*previ
   std::future<CommandResponse> f = client_->enable_acoustics(false);
   const CommandResponse response = f.get();
   if (!response.success) {
-    RCLCPP_ERROR(get_logger(), "Failed to reset dead reckoning: %s", response.error_message.c_str());
+    RCLCPP_ERROR(get_logger(), "Failed to disable acoustics: %s", response.error_message.c_str());
     return CallbackReturn::ERROR;
   }
+
+  RCLCPP_INFO(get_logger(), "WaterLinkedDvlDriver deactivated successfully");
 
   return CallbackReturn::SUCCESS;
 }
