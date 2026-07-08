@@ -40,3 +40,8 @@
     # periodically searching for a bottom lock shorter than the existing bottom
     # lock
     periodic_cycling_enabled: true
+
+    # Scaling factors for the covariance values in the published messages.
+    twist_cov_scaling_factor: 1.0
+    dead_reckoning_cov_scaling_factor: 1.0
+    odom_cov_scaling_factor: 1.0
